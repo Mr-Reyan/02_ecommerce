@@ -8,10 +8,10 @@
 | 04 API workflows | 04_api-workflows.pdf, api-spec.md; Lucidchart link: <none> | PDF done; Lucidchart NOT done |
 | 05 Test cases | 05_test-cases.xlsx (149 tests: 111 pass, 15 fail, 23 blocked); evidence: test_output.txt <Drive link> | Done; 23 tests need re-run |
 | 06 Engineering decisions | 06_engineering-decisions.md | Done |
-| 07 Source + demo | Repo: None; Demo (3-5 min): <link> | <fill in> |
+| 07 Source + demo | Repo: https://github.com/Mr-Reyan/02_ecommerce; Demo (3-5 min): <link> | <fill in> |
 | 08 Cost and scaling | - | NOT done (incomplete) |
 | 09 Sources and disclosure | 09_sources-and-disclosure.md | Done - verify AI section |
 | 10 Submission index | this file | Done |
 
 Incomplete deliverables: 08 cost-and-scaling.xlsx; editable Lucidchart links for 02/03/04; re-run of 23 blocked tests; demo recording (unless recorded).
-Reviewer access: <confirm the Drive folder and repo are shared with HR and the assigned reviewer>.
+.
