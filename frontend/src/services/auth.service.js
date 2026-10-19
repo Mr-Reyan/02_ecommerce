@@ -2,17 +2,6 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL
 
 
-function getCookie(name) {
-    const cookies = document.cookie.split("; ");
-
-    const cookie = cookies.find((row) =>
-        row.startsWith(`${name}=`)
-    );
-
-    return cookie?.split("=")[1];
-}
-
-
 export async function apiFetch(url, options) {
     let response = await fetch(url, {
         ...options,
@@ -21,6 +10,14 @@ export async function apiFetch(url, options) {
 
 
     if (response.status === 401) {
+        // Don't try to refresh if we're already on login/signup pages
+        if (typeof window !== 'undefined') {
+            const currentPath = window.location.pathname;
+            if (currentPath === '/login' || currentPath === '/signup') {
+                throw new Error("Unauthorized");
+            }
+        }
+
         const refresh = await fetch(
             `${BASE_URL}/token/refresh/`,
             {
@@ -30,23 +27,15 @@ export async function apiFetch(url, options) {
         )
 
         if (!refresh.ok) {
-            window.location.href = "/login";
+            if (typeof window !== 'undefined') {
+                window.location.href = "/login";
+            }
             throw new Error("Session expired");
         }
 
-
-        const csrfToken = getCookie("csrftoken");
-
-        const headers = new Headers(options.headers);
-        console.log(headers)
-        if (csrfToken) {
-            headers.set("X-CSRFToken", csrfToken);
-        }
-
-
+        // Retry original request after refresh
         response = await fetch(url, {
             ...options,
-            headers,
             credentials: "include",
         });
     }

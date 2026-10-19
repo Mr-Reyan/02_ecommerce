@@ -4,7 +4,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.parsers import MultiPartParser, FormParser
 from django.db import transaction
 from config.redis_client import redis_client
 from rest_framework.permissions import IsAuthenticated
@@ -14,7 +13,6 @@ from .serializers import ProductReadSerializer, ProductWriteSerializer
 from .pagination import ProductsPagination
 
 class ProductViewSet(ModelViewSet):
-    # parser_classes = [MultiPartParser,FormParser]
     filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
     permission_classes = [IsAuthenticated]
     search_fields = ["name", "description", "sku"]
@@ -57,7 +55,8 @@ class ProductViewSet(ModelViewSet):
 
         size = self.request.query_params.get("size")
         if size:
-            queryset = queryset.filter(specifications__sizes__contains=[size])
+            # Check if size exists in size_stock keys (for variant-level stock tracking)
+            queryset = queryset.filter(specifications__size_stock__has_key=size)
 
         key = self.request.query_params.get("spec_key")
         value = self.request.query_params.get("spec_value")
@@ -87,6 +86,8 @@ class ProductViewSet(ModelViewSet):
         max_price = request.query_params.get("max_price", "")
         color = request.query_params.get("color", "")
         size = request.query_params.get("size", "")
+        spec_key = request.query_params.get("spec_key", "")
+        spec_value = request.query_params.get("spec_value", "")
 
         cache_key = (
             f"products:{request.user.tenant.id}:"
@@ -99,7 +100,9 @@ class ProductViewSet(ModelViewSet):
             f"min_price:{min_price}:"
             f"max_price:{max_price}:"
             f"color:{color}:"
-            f"size:{size}"
+            f"size:{size}:"
+            f"spec_key:{spec_key}:"
+            f"spec_value:{spec_value}"
         )
 
         try:
@@ -138,26 +141,6 @@ class ProductViewSet(ModelViewSet):
         self._clear_cache(request.user.tenant.id)
 
         return Response(status=204)
-
-    @action(detail=False, methods=["post"])
-    def bulk_create(self, request):
-
-        self._clear_cache(request.user.tenant.id)
-
-        serializer = self.get_serializer(
-            data=request.data,
-            many=True
-        )
-
-        serializer.is_valid(raise_exception=True)
-
-        with transaction.atomic():
-            serializer.save()
-
-        return Response(
-            serializer.data,
-            status=201
-        )
 
     def create(self, request, *args, **kwargs):
         self._clear_cache(request.user.tenant.id)

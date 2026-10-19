@@ -1,7 +1,7 @@
 'use client'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Toaster } from 'sonner'
 
 export default function Providers({ children }) {
@@ -15,12 +15,6 @@ export default function Providers({ children }) {
         },
       })
   )
-
-  useEffect(() => {
-    fetch('http://127.0.0.1:8000/csrf/', {
-      credentials: 'include',
-    })
-  }, [])
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -25,7 +25,6 @@ class OrderItemSerializer(serializers.ModelSerializer):
             first_img = obj.product.images.first()
             if first_img and first_img.image:
                 return first_img.image.url if hasattr(first_img.image, "url") else str(first_img.image)
-            return obj.product.image
         return None
 
     def get_line_total(self, obj):

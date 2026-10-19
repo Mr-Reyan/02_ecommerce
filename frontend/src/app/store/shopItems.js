@@ -140,7 +140,7 @@
 //   )
 // }
 
-import React from 'react'
+import React, { useState } from 'react'
 import Card from '../home/card'
 
 import {
@@ -154,7 +154,7 @@ import {
 } from '@/components/ui/select'
 import Link from 'next/link'
 
-import { SlidersHorizontal } from 'lucide-react'
+import { SlidersHorizontal, Search, X } from 'lucide-react'
 
 const items = [{ label: 'Most Popular', value: 'popular' }]
 
@@ -165,7 +165,11 @@ export function ShopItems({
   pageSize = 20,
   items: products = [],
   onOpenMobileFilters,
+  onSearch,
+  searchQuery = '',
 }) {
+  const [searchInput, setSearchInput] = useState(searchQuery)
+
   const total = totalProd || 0
   const start = total > 0 ? (currentPage - 1) * pageSize + 1 : 0
   const end = total > 0 ? Math.min(currentPage * pageSize, total) : 0
@@ -174,8 +178,69 @@ export function ShopItems({
       ? 'Showing 0 Products'
       : `Showing ${start}-${end} of ${total} Products`
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault()
+    if (onSearch) {
+      onSearch(searchInput.trim())
+    }
+  }
+
+  const handleClearSearch = () => {
+    setSearchInput('')
+    if (onSearch) {
+      onSearch('')
+    }
+  }
+
   return (
     <div className="w-full">
+      {/* Search Bar */}
+      <form onSubmit={handleSearchSubmit} className="mb-4">
+        <div className="relative flex items-center">
+          <Search className="absolute left-4 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search for products by name, description or SKU..."
+            className="w-full pl-12 pr-24 py-3 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+          />
+          {searchInput && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className="absolute right-20 p-1 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="Clear search"
+            >
+              <X className="h-4 w-4 text-gray-400" />
+            </button>
+          )}
+          <button
+            type="submit"
+            className="absolute right-2 px-6 py-2 bg-black text-white rounded-full hover:bg-black/90 transition-colors text-sm font-medium"
+          >
+            Search
+          </button>
+        </div>
+      </form>
+
+      {/* Showing active search */}
+      {searchQuery && (
+        <div className="mb-4 flex items-center gap-2 text-sm">
+          <span className="text-gray-500">Searching for:</span>
+          <span className="px-3 py-1 bg-black text-white rounded-full flex items-center gap-2">
+            {searchQuery}
+            <button
+              onClick={handleClearSearch}
+              className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+              aria-label="Clear search"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        </div>
+      )}
+
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center justify-between w-full sm:w-auto">
           <p className="text-2xl font-bold md:text-[32px]">Casual</p>
@@ -255,7 +320,7 @@ export function ShopItems({
             "
           >
             <Card
-              img={product.images?.[0]?.image || product.image || '/img/newarrivals/shirt1.png'}
+              img={product.images?.[0]?.image || '/img/newarrivals/shirt1.png'}
               title={product.name}
               price={product.price}
               rating={product.rating}

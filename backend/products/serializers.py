@@ -46,7 +46,6 @@ class ProductReadSerializer(serializers.ModelSerializer):
             "category",
             'stock',
             "tags",
-            "image",
             'images',
             "is_featured",
             "is_active",
@@ -57,31 +56,10 @@ class ProductReadSerializer(serializers.ModelSerializer):
             "created_at",
         ]
 
-class ProductListSerializer(serializers.ListSerializer):
-
-    def create(self, validated_data):
-        products = []
-        tags_data = []
-
-        for item in validated_data:
-            tags = item.pop("tags", [])
-            tags_data.append(tags)
-
-            tenant = self.context["request"].user.tenant
-            products.append(Product(**item,tenant=tenant))
-
-        products = Product.objects.bulk_create(products)
-
-        for product, tags in zip(products, tags_data):
-            product.tags.set(tags)
-
-        return products
-    
 class ProductWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
         fields = "__all__"
         read_only_fields = ["tenant"]
-        list_serializer_class = ProductListSerializer
 

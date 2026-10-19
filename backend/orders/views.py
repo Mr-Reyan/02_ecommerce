@@ -127,13 +127,11 @@ def checkout_order(request):
             return _order_response(existing, 200)
         raise
 
-    # Cache/leaderboard updates run only after the transaction has committed
+    # Clear product cache after checkout
     try:
-        redis_client.zincrby("top_customers", float(order.total_price), request.user.username)
         tenant_id = getattr(request.user.tenant, "id", "")
         for key in redis_client.scan_iter(match=f"products:{tenant_id}*"):
             redis_client.delete(key)
-        redis_client.delete(f"orders:user:{request.user.id}")
     except Exception:
         pass
 
@@ -141,36 +139,11 @@ def checkout_order(request):
 
 
 @api_view(["GET"])
-def top_customers(request):
-    try:
-        top = redis_client.zrevrange("top_customers", 0, 2, withscores=True)
-        leaderboard = [{"username": username, "score": score} for username, score in top]
-    except Exception:
-        leaderboard = []
-    return Response(leaderboard, status=200)
-
-
-@api_view(["GET"])
 def get_orders(request):
-    cache_key = f"orders:user:{request.user.id}"
-    try:
-        cached = redis_client.get(cache_key)
-        if cached:
-            return Response(json.loads(cached), status=200)
-    except Exception:
-        pass
-
     orders = (
         Order.objects.filter(user=request.user)
         .prefetch_related("items__product__images")
         .order_by("-created_at")
     )
     serializer = OrderSerializer(orders, many=True)
-    data = serializer.data
-
-    try:
-        redis_client.setex(cache_key, 3600, json.dumps(data))
-    except Exception:
-        pass
-
-    return Response(data, status=200)
+    return Response(serializer.data, status=200)

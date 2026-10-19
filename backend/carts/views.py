@@ -36,10 +36,22 @@ def add_to_cart(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    # Check inventory exists
+    if not hasattr(product, 'stock'):
+        return Response(
+            {"error": "Product inventory not configured"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     size = request.data.get('size')
     specs = product.specifications or {}
     size_stock = specs.get('size_stock', {})
-    available_stock = size_stock.get(size) if size and size in size_stock else (product.stock.stock if hasattr(product, 'stock') else 99)
+    
+    # Determine available stock
+    if size and size in size_stock:
+        available_stock = size_stock[size]
+    else:
+        available_stock = product.stock.stock
 
     if available_stock <= 0:
         return Response(
@@ -93,9 +105,21 @@ def update_cart_quantity(request, product_id):
     cart, _ = Cart.objects.get_or_create(user=request.user)
     cartItem = get_object_or_404(CartItem, cart=cart, product=product)
 
+    # Check inventory exists
+    if not hasattr(product, 'stock'):
+        return Response(
+            {"error": "Product inventory not configured"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     specs = product.specifications or {}
     size_stock = specs.get('size_stock', {})
-    available_stock = size_stock.get(cartItem.size) if cartItem.size and cartItem.size in size_stock else (product.stock.stock if hasattr(product, 'stock') else 99)
+    
+    # Determine available stock
+    if cartItem.size and cartItem.size in size_stock:
+        available_stock = size_stock[cartItem.size]
+    else:
+        available_stock = product.stock.stock
 
     if quantity > available_stock:
         return Response(

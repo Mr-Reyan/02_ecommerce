@@ -31,7 +31,7 @@ const LoginPage = () => {
         try {
             await Login(data);
             toast.success("Logged In!")
-            router.back()
+            router.push('/store') // Redirect to store instead of router.back()
 
         } catch (error) {
             toast.error("Invalid email or password.");

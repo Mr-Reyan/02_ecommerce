@@ -8,7 +8,6 @@ from authen.models import Tenant
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, max_length=200)
-    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -18,7 +17,6 @@ class Category(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    is_deleted = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -38,7 +36,6 @@ class Product(models.Model):
     )
 
     tags = models.ManyToManyField(Tag, related_name="products")
-    image = models.URLField(blank=True)
 
     is_featured = models.BooleanField(default=False, db_index=True)
     is_active = models.BooleanField(default=True, db_index=True)

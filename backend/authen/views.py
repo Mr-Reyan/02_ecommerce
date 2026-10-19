@@ -4,21 +4,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import RegisterSerializer,LoginSerializer
+from .serializers import RegisterSerializer, LoginSerializer
 
-# CSRF
-
-from django.middleware.csrf import get_token
-from django.http import JsonResponse
-from rest_framework.views import APIView
-# Create your views here.
 User = get_user_model()
-
-class CSRFTokenView(APIView):
-    permission_classes = [AllowAny]
-    def get(self,request):
-        token = get_token(request)
-        return JsonResponse({'csrfToken':token})
 
 
 @api_view(["POST"])
@@ -76,12 +64,9 @@ class LoginView(TokenObtainPairView):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def refresh_token(request):
-    print("Cookies:", request.COOKIES)
-
     refresh_token = request.COOKIES.get("refresh")
 
     if not refresh_token:
-        print("No refresh cookie received")
         return Response(
             {"detail": "Refresh token missing"},
             status=401,
@@ -89,7 +74,6 @@ def refresh_token(request):
 
     try:
         refresh = RefreshToken(refresh_token)
-        print("Refresh successful")
         access = str(refresh.access_token)
 
         response = Response({"success": True})
@@ -105,8 +89,7 @@ def refresh_token(request):
 
         return response
 
-    except Exception as e:
-        print(e)
+    except Exception:
         return Response(
             {"detail": "Invalid refresh token"},
             status=401
@@ -121,4 +104,21 @@ def LogoutView(request):
     response.delete_cookie('access')
     response.delete_cookie('refresh')
     return response
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def auth_status(request):
+    """Check if user has valid access token in cookies"""
+    access_token = request.COOKIES.get('access')
+    
+    if not access_token:
+        return Response({'authenticated': False}, status=200)
+    
+    try:
+        from rest_framework_simplejwt.tokens import AccessToken
+        AccessToken(access_token)
+        return Response({'authenticated': True}, status=200)
+    except Exception:
+        return Response({'authenticated': False}, status=200)
 

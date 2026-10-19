@@ -29,8 +29,10 @@ const StoreContent = () => {
   const category = searchParams.get('category') || ''
   const size = searchParams.get('size') || ''
   const style = searchParams.get('style') || ''
+  const searchQuery = searchParams.get('search') || ''
 
   const currentFilters = {
+    search: searchQuery,
     min_price: minPrice,
     max_price: maxPrice,
     color,
@@ -44,6 +46,7 @@ const StoreContent = () => {
       'products',
       currentPage,
       currentPageSize,
+      searchQuery,
       minPrice,
       maxPrice,
       color,
@@ -60,6 +63,7 @@ const StoreContent = () => {
     const params = new URLSearchParams()
     params.set('page', pageNumber)
     params.set('page_size', currentPageSize)
+    if (searchQuery) params.set('search', searchQuery)
     if (minPrice) params.set('min_price', minPrice)
     if (maxPrice) params.set('max_price', maxPrice)
     if (color) params.set('color', color)
@@ -87,12 +91,30 @@ const StoreContent = () => {
     params.set('page', '1')
     params.set('page_size', currentPageSize)
 
+    if (newFilters.search) params.set('search', newFilters.search)
     if (newFilters.min_price) params.set('min_price', newFilters.min_price)
     if (newFilters.max_price) params.set('max_price', newFilters.max_price)
     if (newFilters.color) params.set('color', newFilters.color)
     if (newFilters.category) params.set('category', newFilters.category)
     if (newFilters.size) params.set('size', newFilters.size)
     if (newFilters.style) params.set('style', newFilters.style)
+
+    router.push(`/store?${params.toString()}`)
+  }
+
+  const handleSearch = (searchTerm) => {
+    const params = new URLSearchParams()
+    params.set('page', '1') // Reset to page 1 on new search
+    params.set('page_size', currentPageSize)
+    
+    if (searchTerm) params.set('search', searchTerm)
+    // Keep existing filters
+    if (minPrice) params.set('min_price', minPrice)
+    if (maxPrice) params.set('max_price', maxPrice)
+    if (color) params.set('color', color)
+    if (category) params.set('category', category)
+    if (size) params.set('size', size)
+    if (style) params.set('style', style)
 
     router.push(`/store?${params.toString()}`)
   }
@@ -150,6 +172,8 @@ const StoreContent = () => {
               pageSize={currentPageSize}
               items={data?.results}
               onOpenMobileFilters={() => setIsMobileFilterOpen(true)}
+              onSearch={handleSearch}
+              searchQuery={searchQuery}
             />
           )}
 

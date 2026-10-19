@@ -6,6 +6,9 @@ export const getProducts = async (page = 1, pageSize = 20, filters = {}) => {
     const params = new URLSearchParams()
     params.set('page', page)
     params.set('page_size', pageSize)
+    if (filters.search) {
+        params.set('search', filters.search)
+    }
     if (filters.min_price !== undefined && filters.min_price !== null && filters.min_price !== '') {
         params.set('min_price', filters.min_price)
     }

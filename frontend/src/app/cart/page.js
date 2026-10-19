@@ -36,7 +36,7 @@ const CartPage = () => {
               const sizeStock =
                 item.size && sizeStockMap[item.size] !== undefined
                   ? sizeStockMap[item.size]
-                  : (item.product?.stock?.stock ?? 99)
+                  : (item.product?.stock?.stock ?? 0)
 
               return (
                 <CartCard
